@@ -4,7 +4,10 @@
 // Note: we don't use any of the standard 'cargo bench', 'test::Bencher',
 // etc. because it's unstable at the time of writing.
 
+#[cfg(not(target_os="optee"))]
 use std::time::{Duration, Instant, SystemTime};
+#[cfg(target_os="optee")]
+use crate::optee_time::{Duration, Instant, SystemTime};
 
 use crate::key;
 use crate::verify;

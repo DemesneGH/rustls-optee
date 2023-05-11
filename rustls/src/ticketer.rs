@@ -5,7 +5,10 @@ use crate::Error;
 use ring::aead;
 use std::mem;
 use std::sync::{Arc, Mutex, MutexGuard};
+#[cfg(not(target_os="optee"))]
 use std::time;
+#[cfg(target_os="optee")]
+use crate::optee_time as time;
 
 /// The timebase for expiring and rolling tickets and ticketing
 /// keys.  This is UNIX wall time in seconds.

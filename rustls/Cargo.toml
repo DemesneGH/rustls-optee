@@ -21,6 +21,9 @@ ring = "0.16.20"
 sct = "0.7.0"
 webpki = { package = "rustls-webpki", version = "0.100.0", features = ["alloc", "std"] }
 
+[target.'cfg(target_os="optee")'.dependencies]
+optee-utee = { git = "https://github.com/apache/incubator-teaclave-trustzone-sdk.git" }
+
 [features]
 default = ["logging", "tls12"]
 logging = ["log"]

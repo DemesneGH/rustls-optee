@@ -14,7 +14,10 @@ use crate::msgs::handshake::DistinguishedName;
 use ring::digest::Digest;
 
 use std::sync::Arc;
+#[cfg(not(target_os="optee"))]
 use std::time::SystemTime;
+#[cfg(target_os="optee")]
+use crate::optee_time::SystemTime;
 
 type SignatureAlgorithms = &'static [&'static webpki::SignatureAlgorithm];
 
@@ -353,7 +356,10 @@ impl ServerCertVerifier for WebPkiVerifier {
         now: SystemTime,
     ) -> Result<ServerCertVerified, Error> {
         let (cert, chain, trustroots) = prepare(end_entity, intermediates, &self.roots)?;
+        #[cfg(not(target_os="optee"))]
         let webpki_now = webpki::Time::try_from(now).map_err(|_| Error::FailedToGetCurrentTime)?;
+        #[cfg(target_os="optee")]
+        let webpki_now = webpki::Time::from_seconds_since_unix_epoch(now.secs());
 
         let cert = cert
             .verify_is_valid_tls_server_cert(
@@ -583,7 +589,11 @@ impl ClientCertVerifier for AllowAnyAuthenticatedClient {
         now: SystemTime,
     ) -> Result<ClientCertVerified, Error> {
         let (cert, chain, trustroots) = prepare(end_entity, intermediates, &self.roots)?;
+        #[cfg(not(target_os="optee"))]
         let now = webpki::Time::try_from(now).map_err(|_| Error::FailedToGetCurrentTime)?;
+        #[cfg(target_os="optee")]
+        let now = webpki::Time::from_seconds_since_unix_epoch(now.secs());
+
         cert.verify_is_valid_tls_client_cert(
             SUPPORTED_SIG_ALGS,
             &webpki::TlsClientTrustAnchors(&trustroots),
@@ -852,13 +862,22 @@ fn verify_tls13(
 }
 
 fn unix_time_millis(now: SystemTime) -> Result<u64, Error> {
-    now.duration_since(std::time::UNIX_EPOCH)
+    #[cfg(not(target_os="optee"))]
+    return now.duration_since(std::time::UNIX_EPOCH)
         .map(|dur| dur.as_secs())
         .map_err(|_| Error::FailedToGetCurrentTime)
         .and_then(|secs| {
             secs.checked_mul(1000)
                 .ok_or(Error::FailedToGetCurrentTime)
-        })
+        });
+    #[cfg(target_os="optee")]
+    return now.duration_since(crate::optee_time::UNIX_EPOCH)
+        .map(|dur| dur.as_secs())
+        .map_err(|_| Error::FailedToGetCurrentTime)
+        .and_then(|secs| {
+            secs.checked_mul(1000)
+                .ok_or(Error::FailedToGetCurrentTime)
+        });
 }
 
 #[cfg(test)]

@@ -345,6 +345,8 @@ mod kx;
 mod suites;
 mod ticketer;
 mod versions;
+#[cfg(target_os="optee")]
+pub mod optee_time;
 
 /// Internal classes which may be useful outside the library.
 /// The contents of this section DO NOT form part of the stable interface.

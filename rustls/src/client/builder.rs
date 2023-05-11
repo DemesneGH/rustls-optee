@@ -11,7 +11,10 @@ use super::client_conn::Resumption;
 
 use std::marker::PhantomData;
 use std::sync::Arc;
+#[cfg(not(target_os="optee"))]
 use std::time::SystemTime;
+#[cfg(target_os="optee")]
+use crate::optee_time::SystemTime;
 
 impl ConfigBuilder<ClientConfig, WantsVerifier> {
     /// Choose how to verify client certificates.

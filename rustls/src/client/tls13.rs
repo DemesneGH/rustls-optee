@@ -661,7 +661,11 @@ impl State<ClientConnectionData> for ExpectCertificateVerify {
             .cert_chain
             .split_first()
             .ok_or(Error::NoCertificatesPresented)?;
+        #[cfg(not(target_os="optee"))]
         let now = std::time::SystemTime::now();
+        #[cfg(target_os="optee")]
+        let now = crate::optee_time::SystemTime::now();
+
         let cert_verified = self
             .config
             .verifier

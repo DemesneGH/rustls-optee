@@ -5,7 +5,10 @@ use crate::rand;
 use std::error::Error as StdError;
 use std::fmt;
 use std::sync::Arc;
+#[cfg(not(target_os="optee"))]
 use std::time::SystemTimeError;
+#[cfg(target_os="optee")]
+use crate::optee_time::SystemTimeError;
 
 /// rustls reports protocol errors using this type.
 #[non_exhaustive]

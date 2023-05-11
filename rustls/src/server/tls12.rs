@@ -530,7 +530,11 @@ impl State<ServerConnectionData> for ExpectCertificate {
                 None
             }
             Some((end_entity, intermediates)) => {
+                #[cfg(not(target_os="optee"))]
                 let now = std::time::SystemTime::now();
+                #[cfg(target_os="optee")]
+                let now = crate::optee_time::SystemTime::now();
+
                 self.config
                     .verifier
                     .verify_client_cert(end_entity, intermediates, now)
